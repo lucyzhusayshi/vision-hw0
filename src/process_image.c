@@ -176,9 +176,20 @@ void hsv_to_rgb(image im)
             //     printf(" h %f, s %f, v %f, h_ %f, c %f, min %f, max %f \n", h, s, v, h_, c, min, max);
             // }
 
-            if (y == 6 && x == 464) {
+            if (y == 0 && x == 48) {
                 printf("(%d, %d): r %f, b %f, g %f", x, y, r, b, g);
                 printf(" h %f, s %f, v %f, h_ %f, c %f, min %f, max %f \n", h, s, v, h_, c, min, max);
+            }
+        }
+    }
+}
+
+void scale_image(image im, int c, float v)
+{
+    if (c >= 0 && c < im.c) {
+        for (int y = 0; y < im.h; y++) {
+            for (int x = 0; x < im.w; x++) {
+                im.data[x + y*im.w + c*im.w*im.h] *= v;
             }
         }
     }
