@@ -39,3 +39,11 @@ clamp_image(im)
 hsv_to_rgb(im)
 save_image(im, "dog_scale_saturated")
 
+# 9a. To HCL
+im = load_image("data/dog.jpg")
+rgb_to_hcl(im)
+save_image(im, "dog_hcl")
+
+# 9b. Back to RGB
+hcl_to_rgb(im)
+save_image(im, "dog_hcl_back_to_rgb")

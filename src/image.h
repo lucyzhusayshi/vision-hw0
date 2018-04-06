@@ -16,7 +16,21 @@ void rgb_to_hsv(image im);
 void hsv_to_rgb(image im);
 void shift_image(image im, int c, float v);
 void clamp_image(image im);
+
+// ez xc
 void scale_image(image im, int c, float v);
+
+// xtra xc
+void rgb_to_ciexyz(image im);
+void ciexyz_to_rgb(image im);
+void ciexyz_to_cieluv(image im);
+void cieluv_to_ciexyz(image im);
+void cieluv_to_hcl(image im);
+void hcl_to_cieluv(image im);
+
+void rgb_to_hcl(image im);
+void hcl_to_rgb(image im);
+
 
 
 // Loading and saving

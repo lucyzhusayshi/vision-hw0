@@ -46,8 +46,36 @@ hsv_to_rgb.argtypes = [IMAGE]
 shift_image = lib.shift_image
 shift_image.argtypes = [IMAGE, c_int, c_float]
 
+# ez xc
 scale_image = lib.scale_image
 scale_image.argtypes = [IMAGE, c_int, c_float]
+
+# xtra xc
+rgb_to_ciexyz = lib.rgb_to_ciexyz
+rgb_to_ciexyz.argtypes = [IMAGE]
+
+ciexyz_to_rgb = lib.ciexyz_to_rgb
+ciexyz_to_rgb.argtypes = [IMAGE]
+
+ciexyz_to_cieluv = lib.ciexyz_to_cieluv
+ciexyz_to_cieluv.argtypes = [IMAGE]
+
+cieluv_to_ciexyz = lib.cieluv_to_ciexyz
+cieluv_to_ciexyz.argtypes = [IMAGE]
+
+cieluv_to_hcl = lib.cieluv_to_hcl
+cieluv_to_hcl.argtypes = [IMAGE]
+
+hcl_to_cieluv = lib.hcl_to_cieluv
+hcl_to_cieluv.argtypes = [IMAGE]
+
+rgb_to_hcl = lib.rgb_to_hcl
+rgb_to_hcl.argtypes = [IMAGE]
+
+hcl_to_rgb = lib.hcl_to_rgb
+hcl_to_rgb.argtypes = [IMAGE]
+
+# end xtra xtra
 
 clamp_image = lib.clamp_image
 clamp_image.argtypes = [IMAGE]

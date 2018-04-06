@@ -175,11 +175,6 @@ void hsv_to_rgb(image im)
             //     printf("(%d, %d): r %f, b %f, g %f", x, y, r, b, g);
             //     printf(" h %f, s %f, v %f, h_ %f, c %f, min %f, max %f \n", h, s, v, h_, c, min, max);
             // }
-
-            if (y == 0 && x == 48) {
-                printf("(%d, %d): r %f, b %f, g %f", x, y, r, b, g);
-                printf(" h %f, s %f, v %f, h_ %f, c %f, min %f, max %f \n", h, s, v, h_, c, min, max);
-            }
         }
     }
 }
@@ -193,4 +188,187 @@ void scale_image(image im, int c, float v)
             }
         }
     }
+}
+
+void rgb_to_ciexyz(image im) 
+{
+    for (int pixel_y = 0; pixel_y < im.h; pixel_y++) {
+        for (int pixel_x = 0; pixel_x < im.w; pixel_x++) {
+            int c1 = pixel_x + pixel_y*im.w;
+            int c2 = c1 + im.w*im.h;
+            int c3 = c1 + 2*im.w*im.h;
+
+            // gamma decompression
+            float r = (im.data[c1] > 0.04045) ? powf(((im.data[c1] + 0.055) / 1.055), 2.4) : im.data[c1] / 12.92;
+            float g = (im.data[c2] > 0.04045) ? powf(((im.data[c2] + 0.055) / 1.055), 2.4) : im.data[c2] / 12.92;
+            float b = (im.data[c3] > 0.04045) ? powf(((im.data[c3] + 0.055) / 1.055), 2.4) : im.data[c3] / 12.92;
+
+            
+
+            float x = 0.4124*r + 0.3576*g + 0.1805*b;
+            float y = 0.2126*r + 0.7152*g + 0.0722*b;
+            float z = 0.0193*r + 0.1192*g + 0.9505*b;
+
+            im.data[c1] = x;
+            im.data[c2] = y;
+            im.data[c3] = z;
+        }
+    }
+}
+
+void ciexyz_to_rgb(image im) 
+{
+    for (int pixel_y = 0; pixel_y < im.h; pixel_y++) {
+        for (int pixel_x = 0; pixel_x < im.w; pixel_x++) {
+            int c1 = pixel_x + pixel_y*im.w;
+            int c2 = c1 + im.w*im.h;
+            int c3 = c1 + 2*im.w*im.h;
+
+            float x = im.data[c1];
+            float y = im.data[c2];
+            float z = im.data[c3];
+
+            float r = 3.2406*x + (-1.5372)*y + (-0.4986)*z;
+            float g = (-0.9689)*x + 1.8758*y + 0.0415*z;
+            float b = 0.0557*x + (-0.2040)*y + 1.0570*z;
+
+            // gamma compression
+            r = (r > 0.0031308) ? 1.055 * powf(r, (float)1.0/2.4) - 0.055 : 12.92 * r;
+            g = (g > 0.0031308) ? 1.055 * powf(g, (float)1.0/2.4) - 0.055 : 12.92 * g;
+            b = (b > 0.0031308) ? 1.055 * powf(b, (float)1.0/2.4) - 0.055 : 12.92 * b;
+
+            im.data[c1] = r;
+            im.data[c2] = g;
+            im.data[c3] = b;
+        }
+    }
+}
+
+void ciexyz_to_cieluv(image im) {
+    // using white reference from https://en.wikipedia.org/wiki/Illuminant_D65
+    float x_n = 95.047;
+    float y_n = 100.00;
+    float z_n = 108.883;
+
+    float u__n = 4*x_n / (x_n + 15*y_n + 3*z_n);
+    float v__n = 9*y_n / (x_n + 15*y_n + 3*z_n);
+
+    for (int pixel_y = 0; pixel_y < im.h; pixel_y++) {
+        for (int pixel_x = 0; pixel_x < im.w; pixel_x++) {
+            int c1 = pixel_x + pixel_y*im.w;
+            int c2 = c1 + im.w*im.h;
+            int c3 = c1 + 2*im.w*im.h;
+
+            float x = im.data[c1];
+            float y = im.data[c2];
+            float z = im.data[c3];
+
+            float denom = x + 15*y + 3*z;
+            float u_ = (denom == 0) ? 0 : 4*x / (x + 15*y + 3*z);
+            float v_ = (denom == 0) ? 0 : 9*y / (x + 15*y + 3*z);
+
+            float l = (y/y_n > powf((float)6.0/29, 3)) ? 116 * powf(y/y_n, (float)1/3) - 16: powf((float)29.0/3, 3) * y/y_n;
+            float u = 13*l*(u_ - u__n);
+            float v = 13*l*(v_ - v__n);
+
+            im.data[c1] = l;
+            im.data[c2] = u;
+            im.data[c3] = v;
+        }
+    }
+}
+
+void cieluv_to_ciexyz(image im) {
+    // using white reference from https://en.wikipedia.org/wiki/Illuminant_D65
+    float x_n = 95.047;
+    float y_n = 100.00;
+    float z_n = 108.883;
+
+    float u__n = 4*x_n / (x_n + 15*y_n + 3*z_n);
+    float v__n = 9*y_n / (x_n + 15*y_n + 3*z_n);
+
+    for (int pixel_y = 0; pixel_y < im.h; pixel_y++) {
+        for (int pixel_x = 0; pixel_x < im.w; pixel_x++) {
+            int c1 = pixel_x + pixel_y*im.w;
+            int c2 = c1 + im.w*im.h;
+            int c3 = c1 + 2*im.w*im.h;
+
+            float l = im.data[c1];
+            float u = im.data[c2];
+            float v = im.data[c3];
+
+            float u_ = u / (13*l) + u__n;
+            float v_ = v / (13*l) + v__n;
+
+            float y = (l > 8) ? y_n * powf((l + 16) / 116, 3) : y_n * l * powf((float)3.0/29, 3);
+            float x = y * 9*u_ / (4*v_);
+            float z = y * (12 - 3*u_ - 20*v_) / (4*v_);
+
+            im.data[c1] = x;
+            im.data[c2] = y;
+            im.data[c3] = z;
+        }
+    }
+}
+
+void cieluv_to_hcl(image im) {
+    for (int pixel_y = 0; pixel_y < im.h; pixel_y++) {
+        for (int pixel_x = 0; pixel_x < im.w; pixel_x++) {
+            int c1 = pixel_x + pixel_y*im.w;
+            int c2 = c1 + im.w*im.h;
+            int c3 = c1 + 2*im.w*im.h;
+
+            float l = im.data[c1];
+            float u = im.data[c2];
+            float v = im.data[c3];
+
+            float c = sqrtf(powf(u, 2) + powf(v, 2));
+            float h = (c != 0) ? atan2f(v, u) : 0;
+            
+            im.data[c1] = h;
+            im.data[c2] = c;
+            im.data[c3] = l;
+        }
+    }
+}
+
+void hcl_to_cieluv(image im) {
+    for (int pixel_y = 0; pixel_y < im.h; pixel_y++) {
+        for (int pixel_x = 0; pixel_x < im.w; pixel_x++) {
+            int c1 = pixel_x + pixel_y*im.w;
+            int c2 = c1 + im.w*im.h;
+            int c3 = c1 + 2*im.w*im.h;
+
+            float h = im.data[c1];
+            float c = im.data[c2];
+            float l = im.data[c3];
+
+            float u, v;
+            if (c == 0) {
+                u = 0;
+                v = 0;
+            } else {
+                float theta = tanf(h);
+                u = c * sinf(theta);
+                v = c * cosf(theta);
+            }
+
+            im.data[c1] = l;
+            im.data[c2] = u;
+            im.data[c3] = v;
+        }
+    }
+}
+
+void rgb_to_hcl(image im) {
+    rgb_to_ciexyz(im);
+    ciexyz_to_cieluv(im);
+    cieluv_to_hcl(im);
+}
+
+void hcl_to_rgb(image im) {
+    hcl_to_cieluv(im);
+    cieluv_to_ciexyz(im);
+    ciexyz_to_rgb(im);
+    // clamp_image(im);
 }
